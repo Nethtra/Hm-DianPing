@@ -1,0 +1,29 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    active: dev
+  application:
+    name: hmdp
+  datasource:
+    driver-class-name: ${dianping.datasource.driver-class-name}
+    url: jdbc:mysql://${dianping.datasource.host}:${dianping.datasource.port}/${dianping.datasource.database}?useSSL=false&serverTimezone=UTC
+    username: ${dianping.datasource.username}
+    password: ${dianping.datasource.password}
+  redis:
+    host: ${dianping.redis.host}
+    port: ${dianping.redis.port}
+    password: ${dianping.redis.password}
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  jackson:
+    default-property-inclusion: non_null # JSON序列化时忽略空字段 只序列化非空字段
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity # mybatis-plus别名扫描包  使在实体类mapper配置时不用写全名
+logging:
+  level:
+    com.hmdp: debug # 日志级别
