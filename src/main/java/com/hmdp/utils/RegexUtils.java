@@ -3,6 +3,9 @@ package com.hmdp.utils;
 import cn.hutool.core.util.StrUtil;
 
 /**
+ * 验证合法的工具类
+ * 注意这个工具类倒着来的  是否是无效 true就是无效
+ *
  * @author 虎哥
  */
 public class RegexUtils {

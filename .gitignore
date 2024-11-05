@@ -17,6 +17,7 @@ target/
 *.iws
 *.iml
 *.ipr
+# costomize
 application-dev.yaml
 nginx-1.18.0/
 
