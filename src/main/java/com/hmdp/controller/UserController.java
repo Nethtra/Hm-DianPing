@@ -42,14 +42,16 @@ public class UserController {
     }
 
     /**
-     * 登录功能
+     * 1.2使用短信验证码登录/注册
      *
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
      */
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
-        // TODO 实现登录功能
-        return Result.fail("功能未完成");
+        //DTO
+        log.debug("用户{}登陆",loginForm.getPhone());
+        userService.login(loginForm,session);
+        return Result.ok();
     }
 
     /**
