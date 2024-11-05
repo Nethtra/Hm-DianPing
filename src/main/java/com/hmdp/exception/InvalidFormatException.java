@@ -1,6 +1,4 @@
-package exception;
-
-import org.springframework.scheduling.support.SimpleTriggerContext;
+package com.hmdp.exception;
 
 /**
  * 格式不合法异常

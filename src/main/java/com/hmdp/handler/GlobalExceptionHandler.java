@@ -1,7 +1,7 @@
 package com.hmdp.handler;
 
 import com.hmdp.dto.Result;
-import exception.BaseException;
+import com.hmdp.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

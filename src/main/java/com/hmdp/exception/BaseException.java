@@ -1,4 +1,4 @@
-package exception;
+package com.hmdp.exception;
 
 /**
  * 自定义异常的父类

@@ -6,7 +6,7 @@ import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
-import exception.InvalidFormatException;
+import com.hmdp.exception.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
