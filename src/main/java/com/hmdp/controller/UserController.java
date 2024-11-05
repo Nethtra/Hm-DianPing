@@ -3,9 +3,11 @@ package com.hmdp.controller;
 
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +37,8 @@ public class UserController {
      * 1.1发送验证码并保存
      */
     @PostMapping("code")
-    public Result sendCode( String phone, HttpSession session) {
-        log.debug("手机号{}",phone);
+    public Result sendCode(String phone, HttpSession session) {
+        log.debug("手机号{}", phone);
         userService.sendAndSaveCode(phone, session);
         return Result.ok();
     }
@@ -49,9 +51,22 @@ public class UserController {
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
         //DTO
-        log.debug("用户{}登陆",loginForm.getPhone());
-        userService.login(loginForm,session);
+        log.debug("用户{}登陆", loginForm.getPhone());
+        userService.login(loginForm, session);
         return Result.ok();
+    }
+
+    /**
+     * 1.3这个应该是右下角 我的 页面
+     * 要返回当前登陆用户的信息
+     *
+     * @return
+     */
+    @GetMapping("/me")
+    public Result me() {
+        //从ThreadLocal获取当前登录的用户并返回
+        UserDTO userDTO = UserHolder.getUser();
+        return Result.ok(userDTO);
     }
 
     /**
@@ -65,11 +80,6 @@ public class UserController {
         return Result.fail("功能未完成");
     }
 
-    @GetMapping("/me")
-    public Result me() {
-        // TODO 获取当前登录的用户并返回
-        return Result.fail("功能未完成");
-    }
 
     @GetMapping("/info/{id}")
     public Result info(@PathVariable("id") Long userId) {

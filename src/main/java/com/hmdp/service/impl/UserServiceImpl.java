@@ -1,8 +1,10 @@
 package com.hmdp.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.exception.VerificationFailedException;
 import com.hmdp.mapper.UserMapper;
@@ -11,6 +13,7 @@ import com.hmdp.utils.RegexUtils;
 import com.hmdp.exception.InvalidFormatException;
 import com.hmdp.utils.SystemConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -73,8 +76,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             save(user);
         }
         //存在就直接登陆
-        //5保存到session中
-        session.setAttribute("user",user);
+        //5登陆成功就保存到session中
+        //不用保存user  保存一个userDTO
+        //这个BeanUtil是hutool包里的
+        session.setAttribute("user", BeanUtil.copyProperties(user,UserDTO.class));
         log.info("登陆成功");
     }
 }
