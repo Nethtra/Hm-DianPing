@@ -17,7 +17,8 @@ target/
 *.iws
 *.iml
 *.ipr
-/src/main/resources/application-dev.yaml
+application-dev.yaml
+nginx-1.18.0/
 
 ### NetBeans ###
 /nbproject/private/
