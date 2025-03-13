@@ -1,0 +1,13 @@
+# redis的配置
+spring:
+  redis:
+    host: 192.168.16.181
+    password: qwer
+    port: 6379
+    timeout: 2000 # 连接超时时间  ms
+    lettuce: # 连接池spring默认使用lettuce实现
+      pool: # 连接池配置
+        max-active: 8  # 最大连接数
+        max-idle: 8 # 最大空闲连接数
+        min-idle: 0 # 最小空闲连接数
+        max-wait: 1000 # 超时等待时间 ms
