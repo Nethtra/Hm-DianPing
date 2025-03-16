@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8080 # tomcat端口号
 spring:
   profiles:
     active: dev
@@ -7,7 +7,7 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: ${dianping.datasource.driver-class-name}
-    url: jdbc:mysql://${dianping.datasource.host}:${dianping.datasource.port}/${dianping.datasource.database}?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://${dianping.datasource.host}:${dianping.datasource.port}/${dianping.datasource.database}?useSSL=false&serverTimezone=Asia/Shanghai
     username: ${dianping.datasource.username}
     password: ${dianping.datasource.password}
   redis:

@@ -37,10 +37,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (RegexUtils.isPhoneInvalid(phone))
             //2手机号不合法就返回错误信息
             throw new InvalidFormatException("手机号格式不合法");
-        //3校验通过就生成验证码
-        //使用hutool工具类   生成6位验证码
+        //3合法就生成验证码
+        //使用hutool工具类   生成6位随机验证码
         String code = RandomUtil.randomNumbers(6);
-        //4保存验证码和手机号到session
+        //4保存验证码和手机号到session  在登录的时候进行验证
         session.setAttribute("code", code);
         session.setAttribute("phone", phone);
         //5发送验证码
@@ -63,23 +63,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //相当于select * from tb_user where phone=phone;
         //.one表示查一个 .list表示多个  因为phone unique  所以肯定是一个结果
         //因为继承了extends ServiceImpl<UserMapper, User>  所以知道相当于到UserMapper中  封装到实体类User
-        //User中制定了表@TableName("tb_user")  所以知道是哪张表
+        //User中指定了表@TableName("tb_user")  所以知道是哪张表
         User user = query().eq("phone", phone).one();
         //4不存在创建新用户并保存到tb_user
         if (user == null) {
-            //随机一个用户名
+            log.info("未查询到用户，注册新账号");
+            //使用hutool随机一个用户名
             user = User.builder()
                     .phone(phone)
                     .nickName(SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomString(10))
                     .build();
-            //保存到tb_user  mybatis-plus
-            save(user);
+            //保存到tb_user  mybatis-plus save
+            save(user);//默认会主键回填
         }
         //存在就直接登陆
         //5登陆成功就保存到session中
         //不用保存user  保存一个userDTO
-        //这个BeanUtil是hutool包里的
+        //这个BeanUtil是hutool包里的  注意和这个包里的不同处package org.springframework.beans;
         session.setAttribute("user", BeanUtil.copyProperties(user,UserDTO.class));
-        log.info("登陆成功");
+        log.info("用户{}登陆成功",user);
     }
 }

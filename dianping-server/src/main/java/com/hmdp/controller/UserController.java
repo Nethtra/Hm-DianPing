@@ -8,6 +8,8 @@ import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,7 @@ import javax.servlet.http.HttpSession;
 @Slf4j
 @RestController
 @RequestMapping("/user")
+@Api(tags = "用户相关接口")
 public class UserController {
 
     @Resource
@@ -34,11 +37,12 @@ public class UserController {
     private IUserInfoService userInfoService;
 
     /**
-     * 1.1发送验证码并保存
+     * 1.1发送短信验证码并保存
      */
-    @PostMapping("code")
+    @ApiOperation("发送验证码")
+    @PostMapping("/code")
     public Result sendCode(String phone, HttpSession session) {
-        log.debug("手机号{}", phone);
+        log.debug("手机号{}请求验证码", phone);
         userService.sendAndSaveCode(phone, session);
         return Result.ok();
     }
@@ -48,10 +52,11 @@ public class UserController {
      *
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
      */
+    @ApiOperation("使用短信验证码登录/注册")
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
         //DTO
-        log.debug("用户{}登陆", loginForm.getPhone());
+        log.debug("用户手机号{}尝试登陆", loginForm.getPhone());
         userService.login(loginForm, session);
         return Result.ok();
     }
