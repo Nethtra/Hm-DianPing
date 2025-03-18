@@ -1,6 +1,7 @@
 package com.hmdp.config;
 
 import com.hmdp.interceptor.LoginInterceptor;
+import com.hmdp.interceptor.RefreshTokenInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +56,7 @@ public class MvcConfig extends WebMvcConfigurationSupport {
 
     /**
      * 注册拦截器
+     * 默认顺序按照添加顺序，也可以手动设置order 越小的 preHandle执行优先级越高
      *
      * @param interceptorRegistry
      */
@@ -67,6 +69,7 @@ public class MvcConfig extends WebMvcConfigurationSupport {
                         "/upload/**", //上传接口  方便测试所以排除
                         "/voucher/**", //优惠券
                         "/shop-type/list"//商铺类型
-                );
+                ).order(1);
+        interceptorRegistry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).order(0);
     }
 }

@@ -1,4 +1,4 @@
-package com.hmdp.utils;
+package com.hmdp.constant;
 
 /**
  * 有关reids业务使用的常量类
