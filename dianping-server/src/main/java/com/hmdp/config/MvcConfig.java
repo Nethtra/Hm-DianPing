@@ -2,8 +2,10 @@ package com.hmdp.config;
 
 import com.hmdp.interceptor.LoginInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -48,16 +50,23 @@ public class MvcConfig implements WebMvcConfigurer {
 @Slf4j
 @Configuration
 public class MvcConfig extends WebMvcConfigurationSupport {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 注册拦截器
+     *
+     * @param interceptorRegistry
+     */
     public void addInterceptors(InterceptorRegistry interceptorRegistry) {
-        interceptorRegistry.addInterceptor(new LoginInterceptor())
-                //把不需要登陆校验的请求排除
+        interceptorRegistry.addInterceptor(new LoginInterceptor(stringRedisTemplate))
+                //把不需要登陆校验的路径排除
                 .excludePathPatterns(
                         "/user/login",
                         "/user/code",
-                        "/shop/**",
-                        "/upload/**",
-                        "/voucher/**"
+                        "/upload/**", //上传接口  方便测试所以排除
+                        "/voucher/**", //优惠券
+                        "/shop-type/list"//商铺类型
                 );
     }
 }

@@ -57,8 +57,8 @@ public class UserController {
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
         //DTO
         log.debug("用户手机号{}尝试登陆", loginForm.getPhone());
-        userService.login(loginForm, session);
-        return Result.ok();
+        String token = userService.login(loginForm, session);
+        return Result.ok(token);
     }
 
     /**
@@ -70,7 +70,7 @@ public class UserController {
     @GetMapping("/me")
     public Result me() {
         //从ThreadLocal获取当前登录的用户并返回
-        UserDTO userDTO = UserHolder.getUser();
+        UserDTO userDTO = UserHolder.getUser();//拿出来UserDTO
         return Result.ok(userDTO);
     }
 

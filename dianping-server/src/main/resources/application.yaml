@@ -7,7 +7,7 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: ${dianping.datasource.driver-class-name}
-    url: jdbc:mysql://${dianping.datasource.host}:${dianping.datasource.port}/${dianping.datasource.database}?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://${dianping.datasource.host}:${dianping.datasource.port}/${dianping.datasource.database}?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${dianping.datasource.username}
     password: ${dianping.datasource.password}
   redis:
