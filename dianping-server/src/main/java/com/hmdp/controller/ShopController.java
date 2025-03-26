@@ -7,6 +7,10 @@ import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
 import com.hmdp.constant.SystemConstants;
+import com.hmdp.service.impl.ShopServiceImpl;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -19,25 +23,32 @@ import javax.annotation.Resource;
  * @author 虎哥
  * @since 2021-12-22
  */
+@Slf4j
 @RestController
 @RequestMapping("/shop")
+@Api("店铺相关接口")
 public class ShopController {
 
     @Resource
     public IShopService shopService;
 
     /**
-     * 根据id查询商铺信息
+     * 2.1根据id查询商铺信息   添加商铺缓存
+     *
      * @param id 商铺id
      * @return 商铺详情数据
      */
+    @ApiOperation("根据店铺id查询商铺信息")
     @GetMapping("/{id}")
     public Result queryShopById(@PathVariable("id") Long id) {
-        return Result.ok(shopService.getById(id));
+        Shop shop = shopService.selectById(id);
+        return Result.ok(shop);
+//        return Result.ok(shopService.getById(id));//mybatisplus提供的查询方法
     }
 
     /**
      * 新增商铺信息
+     *
      * @param shop 商铺数据
      * @return 商铺id
      */
@@ -51,6 +62,7 @@ public class ShopController {
 
     /**
      * 更新商铺信息
+     *
      * @param shop 商铺数据
      * @return 无
      */
@@ -63,7 +75,8 @@ public class ShopController {
 
     /**
      * 根据商铺类型分页查询商铺信息
-     * @param typeId 商铺类型
+     *
+     * @param typeId  商铺类型
      * @param current 页码
      * @return 商铺列表
      */
@@ -82,7 +95,8 @@ public class ShopController {
 
     /**
      * 根据商铺名称关键字分页查询商铺信息
-     * @param name 商铺名称关键字
+     *
+     * @param name    商铺名称关键字
      * @param current 页码
      * @return 商铺列表
      */

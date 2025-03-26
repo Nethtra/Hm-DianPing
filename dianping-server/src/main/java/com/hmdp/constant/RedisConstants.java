@@ -1,5 +1,7 @@
 package com.hmdp.constant;
 
+import io.swagger.annotations.ApiParam;
+
 /**
  * 有关reids业务使用的常量类
  */
@@ -8,11 +10,12 @@ public class RedisConstants {
     public static final Long LOGIN_CODE_TTL = 5L;
     public static final String LOGIN_USER_KEY = "login:token:";
     public static final Long LOGIN_USER_TTL = 30L;
+    //商铺缓存key
+    public static final String CACHE_SHOP_KEY = "cache:shop:";
 
     public static final Long CACHE_NULL_TTL = 2L;
 
     public static final Long CACHE_SHOP_TTL = 30L;
-    public static final String CACHE_SHOP_KEY = "cache:shop:";
 
     public static final String LOCK_SHOP_KEY = "lock:shop:";
     public static final Long LOCK_SHOP_TTL = 10L;

@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @Slf4j
-@MapperScan("com.hmdp.mapper")
+@MapperScan("com.hmdp.mapper")//mybatisplus扫描mapper
 @SpringBootApplication
 public class HmDianPingApplication {
 

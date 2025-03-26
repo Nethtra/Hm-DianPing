@@ -13,4 +13,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IShopService extends IService<Shop> {
 
+    /**
+     * 2.1根据id查询商铺信息   添加商铺缓存
+     * @param id
+     * @return
+     */
+    Shop selectById(Long id);
 }
