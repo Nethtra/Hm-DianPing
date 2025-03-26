@@ -12,6 +12,8 @@ public class RedisConstants {
     public static final Long LOGIN_USER_TTL = 30L;
     //商铺缓存key
     public static final String CACHE_SHOP_KEY = "cache:shop:";
+    //商铺类型缓存key
+    public static final String CACHE_SHOP_TYPE_KEY="cache:shop:type:";
 
     public static final Long CACHE_NULL_TTL = 2L;
 

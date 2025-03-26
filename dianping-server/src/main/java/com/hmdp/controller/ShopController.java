@@ -26,7 +26,7 @@ import javax.annotation.Resource;
 @Slf4j
 @RestController
 @RequestMapping("/shop")
-@Api("店铺相关接口")
+@Api("商铺相关接口")
 public class ShopController {
 
     @Resource
@@ -38,7 +38,7 @@ public class ShopController {
      * @param id 商铺id
      * @return 商铺详情数据
      */
-    @ApiOperation("根据店铺id查询商铺信息")
+    @ApiOperation("根据商铺id查询商铺信息")
     @GetMapping("/{id}")
     public Result queryShopById(@PathVariable("id") Long id) {
         Shop shop = shopService.selectById(id);
