@@ -61,15 +61,14 @@ public class ShopController {
     }
 
     /**
-     * 更新商铺信息
+     * 2.2更新商铺信息   同时删除缓存
      *
      * @param shop 商铺数据
      * @return 无
      */
     @PutMapping
     public Result updateShop(@RequestBody Shop shop) {
-        // 写入数据库
-        shopService.updateById(shop);
+        shopService.update(shop);
         return Result.ok();
     }
 

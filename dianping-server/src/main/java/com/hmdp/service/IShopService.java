@@ -19,4 +19,10 @@ public interface IShopService extends IService<Shop> {
      * @return
      */
     Shop selectById(Long id);
+
+    /**
+     * 2.2更新商铺信息 同时删除缓存
+     * @param shop
+     */
+    void update(Shop shop);
 }
