@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 //@Component
 public class LoginInterceptor implements HandlerInterceptor {
 
-    //不要注入，因为拦截器不归Spring ioc管，是由Spring mvc管理，而且他俩的声明周期不同
+    //不要注入，因为拦截器不归Spring ioc管，是由Spring mvc管理，而且他俩的生命周期不同
     //所以不一定能注入成功即使加了@Component
 /*    @Autowired
     private StringRedisTemplate stringRedisTemplate;*/

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler
     public Result exceptionHandler(BaseException exception) {
-        log.warn("全局异常处理器捕获{}", exception.getMessage());//记录log
+        log.warn("全局异常处理器：{}", exception.getMessage());//记录log
         return Result.fail(exception.getMessage());//返回
     }
 }

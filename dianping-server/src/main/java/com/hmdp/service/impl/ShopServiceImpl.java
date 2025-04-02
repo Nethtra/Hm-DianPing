@@ -11,6 +11,7 @@ import com.hmdp.exception.DataNotFoundException;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.RedisUtils;
 import lombok.Synchronized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,13 +38,17 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedisUtils redisUtils;
     //线程池
     private static final ExecutorService CACHE_REBUILE_EXECUTOR = Executors.newFixedThreadPool(10);
 
 
     @Override
     public Shop selectById(Long id) {
-        return selectById4(id);
+//        return selectById4(id);
+//        return redisUtils.Query1(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        return redisUtils.Query2(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.SECONDS);
     }
 
     /**
@@ -74,7 +79,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     /**
-     * 2.3解决商铺查询缓存穿透问题
+     * 2.3缓存空值解决商铺查询缓存穿透问题
      *
      * @param id
      * @return
@@ -165,7 +170,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     /**
-     * 基于逻辑过期解决查询商铺缓存击穿问题
+     * 2.5基于逻辑过期解决查询商铺缓存击穿问题
      *
      * @param id
      * @return
@@ -180,6 +185,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         }
 
         //3命中   先转回shop
+        /*RedisData redisData = JSON.parseObject(shopCache, RedisData.class);
+        JSONObject data = (JSONObject) redisData.getData();
+        Shop shop = data.toJavaObject(Shop.class);
+        System.out.println(redisData.getExpireTime());*/
         RedisData redisData = JSONUtil.toBean(shopCache, RedisData.class);
         JSONObject data = (JSONObject) redisData.getData();
         Shop shop = JSONUtil.toBean(data, Shop.class);
@@ -197,7 +206,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             //线程池提交任务
             CACHE_REBUILE_EXECUTOR.submit(() -> {
                 try {
-                    this.saveShop2Redis(id, 20L);//为了赶快过期测试 逻辑过期时间设置的短一点
+                    this.saveShop2Redis(id, CACHE_SHOP_TTL);//为了赶快过期测试 逻辑过期时间设置的短一点
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } finally {
@@ -241,7 +250,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     /**
-     * 将Shop热点数据存到redis的方法(逻辑过期)
+     * 将Shop热点数据存到（提前缓存）redis的方法(逻辑过期)
      *
      * @param id         商铺id
      * @param expireTime 过期时间s
@@ -250,7 +259,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         RedisData redisData = new RedisData();
         redisData.setData(getById(id));
         Thread.sleep(200);//模拟重建延迟
-        redisData.setExpireTime(LocalDateTime.now().plusSeconds(expireTime));
+        redisData.setExpireTime(LocalDateTime.now().plusSeconds(expireTime));//为了赶快过期测试，弄成秒
         String redisDataJson = JSON.toJSONString(redisData);
         String jsonStr = JSONUtil.toJsonStr(redisData);//hutool的这个转json字符串会将LocalDateTime转成时间戳
         stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, jsonStr);//已经有逻辑过期时间 就不用真正的ttl
