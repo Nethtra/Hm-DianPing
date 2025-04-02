@@ -96,7 +96,7 @@ public class RedisUtils {
 
         //3未命中就查询数据库
         R r = dbFallback.apply(id);//由于工具类不能查数据库，所以这段逻辑就由调用者传 定义一个Function 类型的参数 代表一个有参有返回值的函数
-        //由调用者传这个函数 就是lambda表达式
+        //由调用者传这个函数 就是lambda表达式  函数式编程
         //4也要判断存不存在
         if (r == null) {
             //2.3数据库中不存在  缓存空串""  注意ttl不一样
