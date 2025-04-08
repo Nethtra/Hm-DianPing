@@ -3,6 +3,7 @@ package com.hmdp.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @TableName("tb_user")
 @Builder
+@ApiModel("用户实体类")
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;

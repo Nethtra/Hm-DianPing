@@ -3,6 +3,7 @@ package com.hmdp.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -10,18 +11,12 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * <p>
- * 秒杀优惠券表，与优惠券是一对一关系
- * </p>
- *
- * @author 虎哥
- * @since 2022-01-04
- */
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("tb_seckill_voucher")
+@ApiModel("秒杀券实体类")
 public class SeckillVoucher implements Serializable {
 
     private static final long serialVersionUID = 1L;

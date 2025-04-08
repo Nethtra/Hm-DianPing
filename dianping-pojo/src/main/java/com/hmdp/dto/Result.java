@@ -1,5 +1,6 @@
 package com.hmdp.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ApiModel("统一响应结果")
 public class Result {
     private Boolean success;
     private String errorMsg;
