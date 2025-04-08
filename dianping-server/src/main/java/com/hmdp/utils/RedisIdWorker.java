@@ -25,9 +25,9 @@ public class RedisIdWorker {
     public static final long BEGIN_TIMESTAMP = 1735689600L;
 
     /**
-     * 生成全局唯一ID
+     * 3.1生成全局唯一ID
      *
-     * @param keyPrefix 业务前缀
+     * @param keyPrefix 业务前缀 区分不同业务生成的id
      * @return
      */
     public long nextId(String keyPrefix) {
