@@ -22,7 +22,7 @@ public class VoucherOrderController {
     private IVoucherOrderService voucherOrderService;
 
     /**
-     * 3.3用户下单秒杀券
+     * 3.3用户下单秒杀券  3.4解决超卖  3.5保证一人一单
      *
      * @param voucherId
      * @return
@@ -30,7 +30,7 @@ public class VoucherOrderController {
     @ApiOperation("用户下单秒杀券")
     @PostMapping("/seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
-        long id = voucherOrderService.placeAnSeckillOrder(voucherId);
+        long id = voucherOrderService.placeASeckillOrder(voucherId);
         log.info("用户抢购到一张秒杀券{}",id);
         return Result.ok(id);
     }
