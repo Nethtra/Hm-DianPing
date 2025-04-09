@@ -68,7 +68,7 @@ public class MvcConfig extends WebMvcConfigurationSupport {
                         "/user/code",
                         "/shop/**",
                         "/upload/**", //上传接口  方便测试所以排除
-                        "/voucher/**", //优惠券
+                        "/voucher-order/**", //优惠券
                         "/shop-type/list"//商铺类型
                 ).order(1);
         interceptorRegistry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).order(0);

@@ -44,8 +44,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (seckillVoucher.getStock() < 1) {
             throw new OutOfStockException("来晚了，优惠券卖完了！");
         }
-        //5下单库存-1
-        boolean success = seckillVoucherService.update().setSql("stock=stock-1").eq("voucher_id", voucherId).update();
+        //5下单库存-1  3.4 .gt("stock", 0)防止超卖
+        boolean success = seckillVoucherService.update()
+                .setSql("stock=stock-1")//set
+                .eq("voucher_id", voucherId).gt("stock", 0)//where
+                .update();
         if (!success) {
             throw new BaseException("未知错误！");
         }
