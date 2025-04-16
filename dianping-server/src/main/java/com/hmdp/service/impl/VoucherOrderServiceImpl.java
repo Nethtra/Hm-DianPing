@@ -13,6 +13,8 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.RedisLockUtils;
 import com.hmdp.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,6 +33,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private RedisIdWorker redisIdWorker;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedissonClient redissonClient;
 
     /**
      * 3.3下单秒杀券  3.4防止超卖
@@ -228,6 +232,81 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
      * @param voucherId
      * @return
      */
+//    @Override
+//    public long placeASeckillOrder(Long voucherId) {
+//        //1根据id查询秒杀券
+//        SeckillVoucher seckillVoucher = seckillVoucherService.getById(voucherId);
+//        //2判断是否未到开始时间
+//        if (seckillVoucher.getBeginTime().isAfter(LocalDateTime.now())) {
+//            throw new TimeStateErrorException("未到开始抢购时间！");
+//        }
+//        //3判断是否已到结束时间
+//        if (seckillVoucher.getEndTime().isBefore(LocalDateTime.now())) {
+//            throw new TimeStateErrorException("抢购时间已结束！");
+//        }
+//
+//        //4判断是否还有库存
+//        if (seckillVoucher.getStock() < 1) {
+//            throw new OutOfStockException("来晚了，优惠券卖完了！");
+//        }
+//        Long userId = UserHolder.getUser().getId();
+//        //5使用自定义的redis分布式锁  解决分布式并发不能一人一单
+//        //注意这里 因为我们想要锁住每个user 所以粒度是userId   锁的key要加上userId
+//        RedisLockUtils redisLockUtils = new RedisLockUtils(stringRedisTemplate, VOUCHER_ORDER_PREFIX + userId);
+//        boolean lock = redisLockUtils.tryLock(2000);//尝试获取锁
+//
+//        /*synchronized (userId.toString().intern()) {//锁的范围应该是整个方法
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
+//            return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
+//        }*/
+//        if (!lock) {
+//            //5,1如果没有拿到锁  说明已经有一个线程去下单了
+//            throw new OrderBusinessException("一人只能下一单！");//注意这是分布式环境一人一单
+//        }
+//        //5,2如果拿到锁了 就去下单
+//        try {
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
+//            return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
+//        } finally {//注意finally释放锁
+//            redisLockUtils.unLock();
+//        }
+//    }
+//
+//    @Transactional
+//    public long addSeckillOrder(Long voucherId) {
+//        Long userId = UserHolder.getUser().getId();
+//        //6判断一人一单   3.5
+//        int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+//        if (count > 0) {
+//            throw new OrderBusinessException("此商品只能每用户下一单！");//这个是单体环境一人一单
+//        }
+//        //7下单库存-1  3.4 .gt("stock", 0)防止超卖
+//        boolean success = seckillVoucherService.update()
+//                .setSql("stock=stock-1")//set
+//                .eq("voucher_id", voucherId).gt("stock", 0)//where
+//                .update();
+//        if (!success) {
+//            throw new BaseException("未知错误！");
+//        }
+//        //8生成订单填写订单信息
+//        long seckillVoucherOrderId = redisIdWorker.nextId(VOUCHER_ORDER_PREFIX);
+//        VoucherOrder order = VoucherOrder.builder()
+//                .id(seckillVoucherOrderId)
+//                .userId(userId)
+//                .voucherId(voucherId)
+//                .build();
+//        save(order);
+//        //9返回订单id
+//        return seckillVoucherOrderId;
+//
+//    }
+
+    /**
+     * 5.1redisson分布式锁入门 解决一人一单
+     *
+     * @param voucherId
+     * @return
+     */
     @Override
     public long placeASeckillOrder(Long voucherId) {
         //1根据id查询秒杀券
@@ -246,16 +325,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             throw new OutOfStockException("来晚了，优惠券卖完了！");
         }
         Long userId = UserHolder.getUser().getId();
-        //5使用自定义的redis分布式锁  解决分布式并发不能一人一单
+        //5.1使用redisson提供的分布式锁
         //注意这里 因为我们想要锁住每个user 所以粒度是userId   锁的key要加上userId
-        RedisLockUtils redisLockUtils = new RedisLockUtils(stringRedisTemplate, VOUCHER_ORDER_PREFIX + userId);
-        boolean lock = redisLockUtils.tryLock(2000);//尝试获取锁
-
-        /*synchronized (userId.toString().intern()) {//锁的范围应该是整个方法
-            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
-            return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
-        }*/
-        if (!lock) {
+        RLock lock = redissonClient.getLock("lock:" + VOUCHER_ORDER_PREFIX + userId);//参数是锁的名称
+        boolean isLock = lock.tryLock();//不给参数默认不重试 30s自动释放
+//        RedisLockUtils redisLockUtils = new RedisLockUtils(stringRedisTemplate, VOUCHER_ORDER_PREFIX + userId);
+//        boolean lock = redisLockUtils.tryLock(2000);//尝试获取锁
+        if (!isLock) {
             //5,1如果没有拿到锁  说明已经有一个线程去下单了
             throw new OrderBusinessException("一人只能下一单！");//注意这是分布式环境一人一单
         }
@@ -264,7 +340,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
             return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
         } finally {//注意finally释放锁
-            redisLockUtils.unLock();
+            lock.unlock();//5.1
         }
     }
 

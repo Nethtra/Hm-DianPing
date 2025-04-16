@@ -76,7 +76,7 @@ public class RedisLockUtils implements ILock {
         //execute要传入的第一个参数是RedisScript类型 就是脚本的类型 用这个类接收lua脚本文件
         //定义成类的属性 类加载时赋值
         //                          脚本文件               key集合即KEYS[]                                           其他参数即ARGV[]
-        stringRedisTemplate.execute(UNLOCK_SCRIPT, Collections.singletonList(KEY_PREFIX + keyName), VALUE_PREFIX + Thread.currentThread().getId());
+        Long execute = stringRedisTemplate.execute(UNLOCK_SCRIPT, Collections.singletonList(KEY_PREFIX + keyName), VALUE_PREFIX + Thread.currentThread().getId());
         //原来分两步的redis操作使用lua脚本变成了一个原子性操作
     }
 }
