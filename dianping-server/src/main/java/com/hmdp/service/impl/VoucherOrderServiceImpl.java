@@ -249,7 +249,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         //5使用自定义的redis分布式锁  解决分布式并发不能一人一单
         //注意这里 因为我们想要锁住每个user 所以粒度是userId   锁的key要加上userId
         RedisLockUtils redisLockUtils = new RedisLockUtils(stringRedisTemplate, VOUCHER_ORDER_PREFIX + userId);
-        boolean lock = redisLockUtils.tryLock(2000);
+        boolean lock = redisLockUtils.tryLock(2000);//尝试获取锁
 
         /*synchronized (userId.toString().intern()) {//锁的范围应该是整个方法
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
@@ -260,8 +260,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             throw new OrderBusinessException("一人只能下一单！");//注意这是分布式环境一人一单
         }
         //5,2如果拿到锁了 就去下单
-        IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
-        return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
+        try {
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
+            return proxy.addSeckillOrder(voucherId);//然后用代理对象而不是目标对象调事务的方法
+        } finally {//注意finally释放锁
+            redisLockUtils.unLock();
+        }
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package com.hmdp;
 
+import cn.hutool.core.lang.UUID;
 import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
 import com.hmdp.service.impl.ShopServiceImpl;
@@ -71,4 +72,9 @@ class HmDianPingApplicationTests {
         long end = System.currentTimeMillis();
         System.out.println(end - begin);
     }//打开redis可以看到今天生成的总数
+
+    @Test
+    public void testUUID(){//toString(true) 使生成的uuid不带-
+        System.out.println(UUID.randomUUID().toString(true));
+    }
 }
