@@ -39,13 +39,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Autowired
     private RedissonClient redissonClient;
     //6.2判断秒杀资格的lua脚本
-    private static final DefaultRedisScript<Integer> SECKILL_SCRIPT;
+    private static final DefaultRedisScript<Long> SECKILL_SCRIPT;
 
     //6.2静态代码块加载脚本
     static {
         SECKILL_SCRIPT = new DefaultRedisScript<>();
         SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));//设置lua脚本地址
-        SECKILL_SCRIPT.setResultType(Integer.class);//脚本返回类型
+        SECKILL_SCRIPT.setResultType(Long.class);//脚本返回值类型
     }
 
     /**
@@ -389,7 +389,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     /**
      * 6.2 异步秒杀 基于redis完成秒杀资格（库存 一人一单）的判断
-     * 1234就是目前所有的业务
+     * 1234就是目前所有的业务  但还没有在数据库层面进行修改
      *
      * @param voucherId
      * @return
@@ -398,12 +398,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     public long placeASeckillOrder(Long voucherId) {
         //1调用自己写的lua脚本  判断资格
         Long userId = UserHolder.getUser().getId();
-        Integer result = stringRedisTemplate.execute(SECKILL_SCRIPT, Collections.emptyList(), voucherId, userId);
-        result = result.intValue();
+        //ARGV只能传String   脚本返回long  用result接收
+        Long result = stringRedisTemplate.execute(SECKILL_SCRIPT, Collections.emptyList(), voucherId.toString(), userId.toString());
+        int r = result.intValue();
         //2result不为0 失败的情况
-        if (result == 2) {
+        if (r == 2) {
             throw new OrderBusinessException("你已经下过单了！");
-        } else if (result == 1) {
+        } else if (r == 1) {
             throw new OrderBusinessException("来晚了，优惠券已经被抢光了！");
         }
         //3result=0 代表下单成功

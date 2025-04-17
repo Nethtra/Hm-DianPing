@@ -32,7 +32,7 @@ public class RedisLockUtils implements ILock {
     static {
         UNLOCK_SCRIPT = new DefaultRedisScript<>();
         UNLOCK_SCRIPT.setLocation(new ClassPathResource("unLock.lua"));//设置lua脚本地址
-        UNLOCK_SCRIPT.setResultType(Long.class);//脚本返回类型
+        UNLOCK_SCRIPT.setResultType(Long.class);//脚本返回类型  redis返回数值默认就是long
     }
 
     public RedisLockUtils(StringRedisTemplate stringRedisTemplate, String keyName) {

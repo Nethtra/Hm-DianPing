@@ -3,6 +3,7 @@ package com.hmdp;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Shop;
 import com.hmdp.entity.User;
@@ -139,5 +140,22 @@ class HmDianPingApplicationTests {
     public void testWorkDirectory() {
         String property = System.getProperty("user.dir");
         System.out.println(property);
+    }
+
+    /**
+     * 快速生成一个token
+     */
+    @Test
+    public void generateAToken() {
+        User user = userService.getById(1010);
+        String token = UUID.randomUUID().toString(true);
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        Map<String, Object> userDTOMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
+                CopyOptions.create()
+                        .setIgnoreNullValue(true)//忽略为空的字段
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));//字段值编辑器 将字段值改成string
+        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userDTOMap);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        System.out.println(token);
     }
 }

@@ -15,7 +15,7 @@ if (tonumber(redis.call('get', stockKey)) <= 0) then
     return 1
 end
 --判断是否已经下过单
-if (redis.call('sismember', userId)==1) then
+if (redis.call('sismember', orderKey, userId) == 1) then
     -- 已经下过单
     return 2
 end

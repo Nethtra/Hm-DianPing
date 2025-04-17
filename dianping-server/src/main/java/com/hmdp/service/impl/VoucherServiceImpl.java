@@ -47,6 +47,6 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
 
         seckillVoucherService.save(seckillVoucher);
         //6.2保存新增的秒杀券的库存信息 到redis  使用string类型  注意value要转成string
-        stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY, voucher.getStock().toString());
+        stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY+voucher.getId(), voucher.getStock().toString());
     }
 }
