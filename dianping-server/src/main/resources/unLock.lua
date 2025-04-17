@@ -1,4 +1,4 @@
--- 释放分布式锁的redis Lua脚本
+-- 释放redis分布式锁的Lua脚本
 
 -- 获取当前线程标识
 local currentThreadTag=ARGV[1]

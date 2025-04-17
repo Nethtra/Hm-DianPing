@@ -22,8 +22,10 @@ public class RedisConstants {
     public static final String LOCK_SHOP_KEY = "lock:shop:";
     //商铺互斥锁过期时间
     public static final Long LOCK_SHOP_TTL = 10L;
-
+    //6.2秒杀券库存信息key
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
+    //订单业务前缀
+    public static final String ORDER = "order";
     public static final String BLOG_LIKED_KEY = "blog:liked:";
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";

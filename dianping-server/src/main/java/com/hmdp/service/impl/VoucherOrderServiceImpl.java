@@ -1,28 +1,31 @@
 package com.hmdp.service.impl;
 
+import cn.hutool.db.sql.Order;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.VoucherOrder;
 import com.hmdp.exception.BaseException;
 import com.hmdp.exception.OrderBusinessException;
-import com.hmdp.exception.OutOfStockException;
 import com.hmdp.exception.TimeStateErrorException;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
-import com.hmdp.utils.RedisLockUtils;
 import com.hmdp.utils.UserHolder;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
+import static com.hmdp.constant.RedisConstants.ORDER;
 import static com.hmdp.constant.RedisConstants.VOUCHER_ORDER_PREFIX;
 
 @Service
@@ -35,6 +38,15 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private RedissonClient redissonClient;
+    //6.2判断秒杀资格的lua脚本
+    private static final DefaultRedisScript<Integer> SECKILL_SCRIPT;
+
+    //6.2静态代码块加载脚本
+    static {
+        SECKILL_SCRIPT = new DefaultRedisScript<>();
+        SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));//设置lua脚本地址
+        SECKILL_SCRIPT.setResultType(Integer.class);//脚本返回类型
+    }
 
     /**
      * 3.3下单秒杀券  3.4防止超卖
@@ -57,7 +69,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //4判断是否还有库存
         if (seckillVoucher.getStock() < 1) {
-            throw new OutOfStockException("来晚了，优惠券卖完了！");
+            throw new OrderBusinessException("来晚了，优惠券卖完了！");
         }
         //5下单库存-1  3.4 .gt("stock", 0)防止超卖
         boolean success = seckillVoucherService.update()
@@ -102,7 +114,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //4判断是否还有库存
         if (seckillVoucher.getStock() < 1) {
-            throw new OutOfStockException("来晚了，优惠券卖完了！");
+            throw new OrderBusinessException("来晚了，优惠券卖完了！");
         }
         return extracted(voucherId);
     }
@@ -171,7 +183,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //4判断是否还有库存
         if (seckillVoucher.getStock() < 1) {
-            throw new OutOfStockException("来晚了，优惠券卖完了！");
+            throw new OrderBusinessException("来晚了，优惠券卖完了！");
         }
         Long userId = UserHolder.getUser().getId();
 //        synchronized (userId.toString().intern()) {//锁的范围应该是整个方法
@@ -247,7 +259,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //
 //        //4判断是否还有库存
 //        if (seckillVoucher.getStock() < 1) {
-//            throw new OutOfStockException("来晚了，优惠券卖完了！");
+//            throw new OrderBusinessException("来晚了，优惠券卖完了！");
 //        }
 //        Long userId = UserHolder.getUser().getId();
 //        //5使用自定义的redis分布式锁  解决分布式并发不能一人一单
@@ -307,7 +319,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
      * @param voucherId
      * @return
      */
-    @Override
+    //回顾业务流程：两个步骤 扣减库存 新增订单
+    //扣减库存要判断时间 保证一人一单（其中出现线程安全问题） 防止超卖
+    /*@Override
     public long placeASeckillOrder(Long voucherId) {
         //1根据id查询秒杀券
         SeckillVoucher seckillVoucher = seckillVoucherService.getById(voucherId);
@@ -322,7 +336,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         //4判断是否还有库存
         if (seckillVoucher.getStock() < 1) {
-            throw new OutOfStockException("来晚了，优惠券卖完了！");
+            throw new OrderBusinessException("来晚了，优惠券卖完了！");
         }
         Long userId = UserHolder.getUser().getId();
         //5.1使用redisson提供的分布式锁
@@ -350,7 +364,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         //6判断一人一单   3.5
         int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
         if (count > 0) {
-            throw new OrderBusinessException("此商品只能每用户下一单！");//这个是单体环境一人一单
+            throw new OrderBusinessException("此商品只能每用户下一单！");
         }
         //7下单库存-1  3.4 .gt("stock", 0)防止超卖
         boolean success = seckillVoucherService.update()
@@ -370,6 +384,40 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         save(order);
         //9返回订单id
         return seckillVoucherOrderId;
+    }*/
 
+
+    /**
+     * 6.2 异步秒杀 基于redis完成秒杀资格（库存 一人一单）的判断
+     * 1234就是目前所有的业务
+     *
+     * @param voucherId
+     * @return
+     */
+    @Override
+    public long placeASeckillOrder(Long voucherId) {
+        //1调用自己写的lua脚本  判断资格
+        Long userId = UserHolder.getUser().getId();
+        Integer result = stringRedisTemplate.execute(SECKILL_SCRIPT, Collections.emptyList(), voucherId, userId);
+        result = result.intValue();
+        //2result不为0 失败的情况
+        if (result == 2) {
+            throw new OrderBusinessException("你已经下过单了！");
+        } else if (result == 1) {
+            throw new OrderBusinessException("来晚了，优惠券已经被抢光了！");
+        }
+        //3result=0 代表下单成功
+        //生成订单id
+        long id = redisIdWorker.nextId(ORDER);
+        //TODO  保存信息到阻塞队列
+
+
+        //4返回订单id
+        return id;
+    }
+
+    @Override
+    public long addSeckillOrder(Long voucherId) {
+        return 0;
     }
 }
