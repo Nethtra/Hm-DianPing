@@ -22,8 +22,13 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.hmdp.constant.RedisConstants.ORDER;
 import static com.hmdp.constant.RedisConstants.VOUCHER_ORDER_PREFIX;
@@ -48,6 +53,34 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         SECKILL_SCRIPT.setResultType(Long.class);//脚本返回值类型
     }
 
+    //6,1阻塞队列 存放要下单到数据库的VoucherOrder
+    private BlockingQueue<VoucherOrder> orderTasks = new ArrayBlockingQueue<>(1024 * 1024);//容量
+    //6,2线程池
+    public static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();//开启一个单线程的线程池
+
+    //注意这个init方法是springboot调用，所以也是springboot创建的子线程，每次请求对应的线程会和它并发执行
+    @PostConstruct//Spring提供的注解 类初始化完就运行
+    private void init() {//6,4初始化完就提交线程任务  让一初始化就一直执行异步下单
+        SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
+    }
+
+    //6,3线程任务   执行异步下单
+    private class VoucherOrderHandler implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    VoucherOrder voucherOrder = orderTasks.take();//take 直到阻塞队列里有元素才拿出来
+                    handleVoucherOrder(voucherOrder);//调用另一个方法异步下单
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    //7,1代理对象
+    private IVoucherOrderService proxy;
     /**
      * 3.3下单秒杀券  3.4防止超卖
      *
@@ -388,7 +421,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
 
     /**
-     * 6.2 异步秒杀 基于redis完成秒杀资格（库存 一人一单）的判断
+     * 6.2 异步秒杀 基于redis完成秒杀资格（库存 一人一单）的判断 基于阻塞队列完成异步秒杀下单
      * 1234就是目前所有的业务  但还没有在数据库层面进行修改
      *
      * @param voucherId
@@ -410,11 +443,72 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         //3result=0 代表下单成功
         //生成订单id
         long id = redisIdWorker.nextId(ORDER);
-        //TODO  保存信息到阻塞队列
 
+        //5生成订单信息并放到阻塞队列  这就是全部的主线程下单逻辑
+        VoucherOrder voucherOrder = VoucherOrder.builder()
+                .id(id)
+                .userId(userId)
+                .voucherId(voucherId)
+                .build();
+        orderTasks.add(voucherOrder);//添加到阻塞队列
+        //7,1在主线程里提前获取proxy
+        proxy = (IVoucherOrderService) AopContext.currentProxy();
 
         //4返回订单id
         return id;
+    }
+
+
+    /**
+     * 线程任务调用的 异步秒杀下单方法
+     * 其实不再需要锁，因为前面基于redis判断秒杀资格已经保证了线程安全，这里只是保险
+     *
+     * @param voucherOrder
+     */
+    private void handleVoucherOrder(VoucherOrder voucherOrder) {
+        //7这个方法就抄原来的placeASeckillOrder剩下的逻辑
+        //注意因为这已经不是主线程，所以UserHolder拿不到userId
+        //Long userId = UserHolder.getUser().getId();
+        Long userId = voucherOrder.getUserId();//直接从voucherOrder里取
+        //使用redisson提供的分布式锁
+        RLock lock = redissonClient.getLock("lock:" + VOUCHER_ORDER_PREFIX + userId);//参数是锁的名称
+        boolean isLock = lock.tryLock();//不给参数默认不重试 30s自动释放
+        if (!isLock) {
+            //如果没有拿到锁  说明已经有一个线程去下单了
+            throw new OrderBusinessException("一人只能下一单！");//注意这是分布式环境一人一单
+        }
+        //如果拿到锁了 就去下单
+        try {//7,1这个proxy也是基于ThreadLocal 所以也废了拿不到
+            //考虑在主线程提前获取，并且定义成成员变量
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();//拿到当前对象的代理对象
+            proxy.addSeckillOrder(voucherOrder);//然后用代理对象而不是目标对象调事务的方法
+            //参数改造成VoucherOrder
+        } finally {//注意finally释放锁
+            lock.unlock();
+        }
+    }
+
+    @Transactional
+    public void addSeckillOrder(VoucherOrder voucherOrder) {
+        //7,2这里就抄原来的addSeckillOrder的逻辑  删一下多余的
+//        Long userId = UserHolder.getUser().getId();
+        Long userId = voucherOrder.getUserId();
+        //判断一人一单
+        int count = query().eq("user_id", userId).eq("voucher_id", voucherOrder.getVoucherId()).count();
+        if (count > 0) {
+            throw new OrderBusinessException("此商品只能每用户下一单！");
+        }
+        //库存-1  .gt("stock", 0)防止超卖
+        boolean success = seckillVoucherService.update()
+                .setSql("stock=stock-1")//set
+                .eq("voucher_id", voucherOrder.getVoucherId()).gt("stock", 0)//where
+                .update();
+        if (!success) {
+            throw new BaseException("未知错误！");
+        }
+        //7,3真正下单
+        save(voucherOrder);
+
     }
 
     @Override

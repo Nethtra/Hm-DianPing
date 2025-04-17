@@ -20,4 +20,10 @@ public interface IVoucherOrderService extends IService<VoucherOrder> {
      * @return
      */
     long addSeckillOrder(Long voucherId);
+
+    /**
+     * 6.2秒杀异步下单 的 addSeckillOrder
+     * @param voucherOrder
+     */
+    void addSeckillOrder(VoucherOrder voucherOrder);
 }
