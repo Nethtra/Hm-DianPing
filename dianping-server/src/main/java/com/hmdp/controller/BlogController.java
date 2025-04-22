@@ -10,6 +10,8 @@ import com.hmdp.service.IBlogService;
 import com.hmdp.service.IUserService;
 import com.hmdp.constant.SystemConstants;
 import com.hmdp.utils.UserHolder;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -18,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/blog")
+@Api("探店点评相关接口")
 public class BlogController {
 
     @Resource
@@ -25,6 +28,12 @@ public class BlogController {
     @Resource
     private IUserService userService;
 
+    /**
+     * 8.1 发布探店点评
+     * @param blog
+     * @return
+     */
+    @ApiOperation("发布探店点评")
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
         // 获取登录用户

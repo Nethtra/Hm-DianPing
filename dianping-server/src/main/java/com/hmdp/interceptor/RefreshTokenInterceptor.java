@@ -80,6 +80,6 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
      */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        UserHolder.removeUser();//移除用户  防止内存泄露
+//        UserHolder.removeUser();//移除用户  防止内存泄露
     }
 }

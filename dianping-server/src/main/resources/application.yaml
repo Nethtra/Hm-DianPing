@@ -1,8 +1,9 @@
 server:
   port: 8080 # tomcat端口号
+
 spring:
   profiles:
-    active: dev
+    active: dev # 激活配置文件
   application:
     name: hmdp
   datasource:
@@ -23,8 +24,15 @@ spring:
         time-between-eviction-runs: 10s
   jackson:
     default-property-inclusion: non_null # JSON序列化时忽略空字段 只序列化非空字段
+
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # mybatis-plus别名扫描包  使在实体类mapper配置时不用写全名
+
 logging:
   level:
     com.hmdp: debug # 日志级别
+
+dianping:
+  alioss:
+    endpoint: ${dianping.alioss.endpoint}
+    bucketname: ${dianping.alioss.bucketName}

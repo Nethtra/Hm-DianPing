@@ -67,8 +67,6 @@ public class MvcConfig extends WebMvcConfigurationSupport {
                         "/user/login",
                         "/user/code",
                         "/shop/**",
-                        "/upload/**", //上传接口  方便测试所以排除
-                        "/voucher-order/**", //优惠券
                         "/shop-type/list",//商铺类型
                         "/voucher/**"
                 ).order(1);

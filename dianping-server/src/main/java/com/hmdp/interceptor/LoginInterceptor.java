@@ -110,8 +110,8 @@ public class LoginInterceptor implements HandlerInterceptor {
      * @param ex
      * @throws Exception
      */
-/*    @Override
+    @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         UserHolder.removeUser();//移除用户  防止内存泄露
-    }*/
+    }
 }
