@@ -143,7 +143,7 @@ class HmDianPingApplicationTests {
     }
 
     /**
-     * 快速生成一个token
+     * 快速生成一个token  1010用户
      */
     @Test
     public void generateAToken() {
@@ -156,6 +156,7 @@ class HmDianPingApplicationTests {
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));//字段值编辑器 将字段值改成string
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userDTOMap);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+
         System.out.println(token);
     }
 }

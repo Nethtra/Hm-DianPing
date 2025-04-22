@@ -34,3 +34,4 @@ build/
 # costomize
 nginx-1.18.0/
 application-dev.yaml
+output.txt
