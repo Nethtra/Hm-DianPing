@@ -49,13 +49,26 @@ class HmDianPingApplicationTests {
     }
 
     /**
-     * 提前缓存热点数据
+     * 提前缓存一个热点商铺数据
      *
      * @throws InterruptedException
      */
     @Test
     public void testSaveShop2Redis() throws InterruptedException {
         shopService.saveShop2Redis(1L, 10L);
+    }
+
+    /**
+     * 提前缓存所有热点商铺数据
+     *
+     * @throws InterruptedException
+     */
+    @Test
+    public void saveAllShops2Redis() throws InterruptedException {
+        int count = shopService.count();
+        for (int i = 1; i <= count; i++) {
+            shopService.saveShop2Redis(Long.valueOf(i), 10L);
+        }
     }
 
     /**

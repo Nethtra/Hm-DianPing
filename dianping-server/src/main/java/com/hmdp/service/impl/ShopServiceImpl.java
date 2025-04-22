@@ -191,6 +191,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         }
         //4逻辑过期时间过期 开始缓存重建
         //4,1尝试获取互斥锁
+        log.warn("开始缓存重建");
         boolean lock = tryLock(LOCK_SHOP_KEY + id);
         //4,2获取锁成功 开启新线程查询数据库缓存重建
         if (lock) {
