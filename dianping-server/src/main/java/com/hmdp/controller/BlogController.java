@@ -49,6 +49,7 @@ public class BlogController {
     /**
      * 8.2根据Blog id查看Blog
      * 注意返回时不止要Blog 还要用户信息
+     *
      * @param id
      * @return
      */
@@ -60,6 +61,7 @@ public class BlogController {
 
     /**
      * 8.2分页查询热点Blog
+     * current是页码
      *
      * @param current
      * @return
@@ -67,15 +69,23 @@ public class BlogController {
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         List<Blog> records = blogService.queryHotBlog(current);
-
         return Result.ok(records);
     }
 
+    /**
+     * 8.3博客点赞功能 保证一人一赞
+     * 使用redis-set维护每个Blog点赞的用户
+     * 给Blog添加一个字段isLike用来给前端判断是否点过赞
+     *
+     * @param id
+     * @return
+     */
     @PutMapping("/like/{id}")
     public Result likeBlog(@PathVariable("id") Long id) {
-        // 修改点赞数量
-        blogService.update()
-                .setSql("liked = liked + 1").eq("id", id).update();
+//        // 修改点赞数量
+//        blogService.update()
+//                .setSql("liked = liked + 1").eq("id", id).update();
+        blogService.likeBlog(id);
         return Result.ok();
     }
 

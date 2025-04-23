@@ -10,6 +10,7 @@ public interface IBlogService extends IService<Blog> {
 
     /**
      * 8.2根据Blog id 查看点评
+     *
      * @param id
      * @return
      */
@@ -17,8 +18,16 @@ public interface IBlogService extends IService<Blog> {
 
     /**
      * 8.2分页查询热点Blog
+     *
      * @param current
      * @return
      */
     List<Blog> queryHotBlog(Integer current);
+
+    /**
+     * 8.3给Blog点赞
+     *
+     * @param id
+     */
+    void likeBlog(Long id);
 }

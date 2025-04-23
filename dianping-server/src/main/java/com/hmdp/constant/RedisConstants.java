@@ -26,8 +26,9 @@ public class RedisConstants {
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
     //订单业务前缀
     public static final String ORDER = "order";
-    //订单的消息队列 注意没有冒号
+    //订单的消息队列key 注意没有冒号
     public static final String ORDER_QUEUE="stream.orders";
+    //记录blog点赞过的用户的key前缀
     public static final String BLOG_LIKED_KEY = "blog:liked:";
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";
