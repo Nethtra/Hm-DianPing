@@ -66,9 +66,8 @@ public class MvcConfig extends WebMvcConfigurationSupport {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/code",
-                        "/shop/**",
                         "/shop-type/list",//商铺类型
-                        "/voucher/**"
+                        "/blog/**"
                 ).order(1);
         interceptorRegistry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).order(0);
     }

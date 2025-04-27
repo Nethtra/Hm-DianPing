@@ -25,8 +25,6 @@ public class BlogController {
 
     @Resource
     private IBlogService blogService;
-    @Resource
-    private IUserService userService;
 
     /**
      * 8.1 发布探店点评Blog
@@ -87,6 +85,18 @@ public class BlogController {
 //                .setSql("liked = liked + 1").eq("id", id).update();
         blogService.likeBlog(id);
         return Result.ok();
+    }
+
+    /**
+     * 8.4查询前五名点赞Blog的用户
+     *
+     * @param id Blog id
+     * @return
+     */
+    @GetMapping("/likes/{ids}")
+    public Result top5BlogLikes(@PathVariable Long id) {
+        List<UserDTO> users = blogService.top5BlogLikes(id);
+        return Result.ok(users);
     }
 
     @GetMapping("/of/me")
