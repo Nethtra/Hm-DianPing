@@ -27,9 +27,11 @@ public class RedisConstants {
     //订单业务前缀
     public static final String ORDER = "order";
     //订单的消息队列key 注意没有冒号
-    public static final String ORDER_QUEUE="stream.orders";
+    public static final String ORDER_QUEUE = "stream.orders";
     //记录blog点赞过的用户的key前缀
     public static final String BLOG_LIKED_KEY = "blog:liked:";
+    //9.3用户的关注列表的key
+    public static final String USER_FOLLOWS_KEY = "follows:";
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";
     public static final String USER_SIGN_KEY = "sign:";
