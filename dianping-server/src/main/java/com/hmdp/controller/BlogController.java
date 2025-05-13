@@ -99,6 +99,22 @@ public class BlogController {
         return Result.ok(users);
     }
 
+    /**
+     * 9.2个人主页 分页查询Blogs
+     *
+     * @param current 页数
+     * @param id      此用户id
+     * @return
+     */
+    @ApiOperation("个人主页 分页查询Blogs")
+    @GetMapping("/of/user")
+    public Result personalPageBlog(@RequestParam(defaultValue = "1") Integer current, Long id) {
+        Page<Blog> page = blogService.query()
+                .eq("user_id", id).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        List<Blog> records = page.getRecords();
+        return Result.ok(records);
+    }
+
     @GetMapping("/of/me")
     public Result queryMyBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         // 获取登录用户

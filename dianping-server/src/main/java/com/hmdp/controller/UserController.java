@@ -1,9 +1,11 @@
 package com.hmdp.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
+import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
@@ -11,6 +13,7 @@ import com.hmdp.utils.UserHolder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -78,6 +81,21 @@ public class UserController {
         return Result.fail("功能未完成");
     }
 
+    /**
+     * 9.2个人主页  用户信息
+     *
+     * @param id 此用户id
+     * @return
+     */
+    @ApiOperation("个人主页 用户信息")
+    @GetMapping("/{id}")
+    public Result personalPage(@PathVariable Long id) {
+        User user = userService.getById(id);
+        if (user == null)
+            return Result.ok();
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        return Result.ok(userDTO);
+    }
 
     @GetMapping("/info/{id}")
     public Result info(@PathVariable("id") Long userId) {
